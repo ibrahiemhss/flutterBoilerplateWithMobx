@@ -1,10 +1,12 @@
 import 'package:flutterBoilerplateWithMobx/data/repository.dart';
 import 'package:flutterBoilerplateWithMobx/models/language/Language.dart';
 import 'package:flutterBoilerplateWithMobx/stores/error/error_store.dart';
+import 'package:injectable/injectable.dart';
 import 'package:mobx/mobx.dart';
 
 part 'language_store.g.dart';
 
+@Injectable()
 class LanguageStore = _LanguageStore with _$LanguageStore;
 
 abstract class _LanguageStore with Store {
@@ -18,14 +20,14 @@ abstract class _LanguageStore with Store {
 
   // supported languages
   List<Language> supportedLanguages = [
+    Language(code: 'AR', locale: 'ar', language: 'Arabic'),
     Language(code: 'US', locale: 'en', language: 'English'),
     Language(code: 'DK', locale: 'da', language: 'Danish'),
     Language(code: 'ES', locale: 'es', language: 'España'),
   ];
 
   // constructor:---------------------------------------------------------------
-  _LanguageStore(Repository repository)
-      : this._repository = repository {
+  _LanguageStore(Repository repository) : this._repository = repository {
     init();
   }
 
@@ -48,8 +50,9 @@ abstract class _LanguageStore with Store {
   @action
   String getCode() {
     var code;
-
-    if (_locale == 'en') {
+    if (_locale == 'ar') {
+      code = "AR";
+    } else if (_locale == 'en') {
       code = "US";
     } else if (_locale == 'da') {
       code = "DK";
@@ -61,7 +64,7 @@ abstract class _LanguageStore with Store {
   }
 
   @action
-  String getLanguage() {
+  String? getLanguage() {
     return supportedLanguages[supportedLanguages
             .indexWhere((language) => language.locale == _locale)]
         .language;
@@ -70,11 +73,9 @@ abstract class _LanguageStore with Store {
   // general:-------------------------------------------------------------------
   void init() async {
     // getting current language from shared preference
-    _repository?.currentLanguage?.then((locale) {
-      if (locale != null) {
-        _locale = locale;
-      }
-    });
+    if (_repository.currentLanguage != null) {
+      _locale = _repository.currentLanguage!;
+    }
   }
 
   // dispose:-------------------------------------------------------------------

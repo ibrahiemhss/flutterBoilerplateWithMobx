@@ -4,7 +4,9 @@ import 'package:flutterBoilerplateWithMobx/data/network/constants/endpoints.dart
 import 'package:flutterBoilerplateWithMobx/data/network/dio_client.dart';
 import 'package:flutterBoilerplateWithMobx/data/network/rest_client.dart';
 import 'package:flutterBoilerplateWithMobx/models/post/post_list.dart';
+import 'package:injectable/injectable.dart';
 
+@Singleton()
 class PostApi {
   // dio instance
   final DioClient _dioClient;

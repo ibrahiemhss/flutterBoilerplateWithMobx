@@ -1,8 +1,10 @@
 import 'package:flutterBoilerplateWithMobx/data/local/constants/db_constants.dart';
 import 'package:flutterBoilerplateWithMobx/models/post/post.dart';
 import 'package:flutterBoilerplateWithMobx/models/post/post_list.dart';
+import 'package:injectable/injectable.dart';
 import 'package:sembast/sembast.dart';
 
+@Singleton()
 class PostDataSource {
   // A Store with int keys and Map<String, dynamic> values.
   // This Store acts like a persistent map, values of which are Flogs objects converted to Map
@@ -13,7 +15,7 @@ class PostDataSource {
 //  Future<Database> get _db async => await AppDatabase.instance.database;
 
   // database instance
-  final Future<Database> _db;
+  final Database _db;
 
   // Constructor
   PostDataSource(this._db);
@@ -27,10 +29,10 @@ class PostDataSource {
     return await _postsStore.count(await _db);
   }
 
-  Future<List<Post>> getAllSortedByFilter({List<Filter> filters}) async {
+  Future<List<Post>> getAllSortedByFilter({List<Filter>? filters}) async {
     //creating finder
     final finder = Finder(
-        filter: Filter.and(filters),
+        filter: filters != null ? Filter.and(filters) : null,
         sortOrders: [SortOrder(DBConstants.FIELD_ID)]);
 
     final recordSnapshots = await _postsStore.find(
@@ -48,7 +50,6 @@ class PostDataSource {
   }
 
   Future<PostList> getPostsFromDb() async {
-
     print('Loading from database');
 
     // post list
@@ -60,14 +61,14 @@ class PostDataSource {
     );
 
     // Making a List<Post> out of List<RecordSnapshot>
-    if(recordSnapshots.length > 0) {
+    if (recordSnapshots.length > 0) {
       postsList = PostList(
           posts: recordSnapshots.map((snapshot) {
-            final post = Post.fromMap(snapshot.value);
-            // An ID is a key of a record from the database.
-            post.id = snapshot.key;
-            return post;
-          }).toList());
+        final post = Post.fromMap(snapshot.value);
+        // An ID is a key of a record from the database.
+        post.id = snapshot.key;
+        return post;
+      }).toList());
     }
 
     return postsList;
@@ -97,5 +98,4 @@ class PostDataSource {
       await _db,
     );
   }
-
 }

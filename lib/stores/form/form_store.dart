@@ -1,9 +1,11 @@
 import 'package:flutterBoilerplateWithMobx/stores/error/error_store.dart';
+import 'package:injectable/injectable.dart';
 import 'package:mobx/mobx.dart';
 import 'package:validators/validators.dart';
 
 part 'form_store.g.dart';
 
+@Injectable()
 class FormStore = _FormStore with _$FormStore;
 
 abstract class _FormStore with Store {
@@ -14,13 +16,13 @@ abstract class _FormStore with Store {
   final ErrorStore errorStore = ErrorStore();
 
   _FormStore() {
-    _setupValidations();
+    setupValidations();
   }
 
   // disposers:-----------------------------------------------------------------
-  List<ReactionDisposer> _disposers;
+  late List<ReactionDisposer> _disposers;
 
-  void _setupValidations() {
+  void setupValidations() {
     _disposers = [
       reaction((_) => userEmail, validateUserEmail),
       reaction((_) => password, validatePassword),
@@ -46,7 +48,9 @@ abstract class _FormStore with Store {
 
   @computed
   bool get canLogin =>
-      !formErrorStore.hasErrorsInLogin && userEmail.isNotEmpty && password.isNotEmpty;
+      !formErrorStore.hasErrorsInLogin &&
+      userEmail.isNotEmpty &&
+      password.isNotEmpty;
 
   @computed
   bool get canRegister =>
@@ -60,6 +64,11 @@ abstract class _FormStore with Store {
       !formErrorStore.hasErrorInForgotPassword && userEmail.isNotEmpty;
 
   // actions:-------------------------------------------------------------------
+  @action
+  void setSucess(bool value) {
+    success = value;
+  }
+
   @action
   void setUserId(String value) {
     userEmail = value;
@@ -157,13 +166,13 @@ class FormErrorStore = _FormErrorStore with _$FormErrorStore;
 
 abstract class _FormErrorStore with Store {
   @observable
-  String userEmail;
+  String? userEmail;
 
   @observable
-  String password;
+  String? password;
 
   @observable
-  String confirmPassword;
+  String? confirmPassword;
 
   @computed
   bool get hasErrorsInLogin => userEmail != null || password != null;

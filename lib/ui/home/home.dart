@@ -1,11 +1,12 @@
+import 'package:another_flushbar/flushbar_helper.dart';
 import 'package:flutterBoilerplateWithMobx/data/sharedpref/constants/preferences.dart';
-import 'package:flutterBoilerplateWithMobx/routes.dart';
+import 'package:flutterBoilerplateWithMobx/utils/routes/routes.dart';
 import 'package:flutterBoilerplateWithMobx/stores/language/language_store.dart';
 import 'package:flutterBoilerplateWithMobx/stores/post/post_store.dart';
 import 'package:flutterBoilerplateWithMobx/stores/theme/theme_store.dart';
 import 'package:flutterBoilerplateWithMobx/utils/locale/app_localization.dart';
+import 'package:flutterBoilerplateWithMobx/widgets/handle_error_message_widget.dart';
 import 'package:flutterBoilerplateWithMobx/widgets/progress_indicator_widget.dart';
-import 'package:flushbar/flushbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:material_dialog/material_dialog.dart';
@@ -19,9 +20,9 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   //stores:---------------------------------------------------------------------
-  PostStore _postStore;
-  ThemeStore _themeStore;
-  LanguageStore _languageStore;
+  late PostStore _postStore;
+  late ThemeStore _themeStore;
+  late LanguageStore _languageStore;
 
   @override
   void initState() {
@@ -46,64 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: _buildAppBar(),
       body: _buildBody(),
-    );
-  }
-
-  // app bar methods:-----------------------------------------------------------
-  Widget _buildAppBar() {
-    return AppBar(
-      title: Text(AppLocalizations.of(context).translate('home_tv_posts')),
-      actions: _buildActions(context),
-    );
-  }
-
-  List<Widget> _buildActions(BuildContext context) {
-    return <Widget>[
-      _buildLanguageButton(),
-      _buildThemeButton(),
-      _buildLogoutButton(),
-    ];
-  }
-
-  Widget _buildThemeButton() {
-    return Observer(
-      builder: (context) {
-        return IconButton(
-          onPressed: () {
-            _themeStore.changeBrightnessToDark(!_themeStore.darkMode);
-          },
-          icon: Icon(
-            _themeStore.darkMode ? Icons.brightness_5 : Icons.brightness_3,
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildLogoutButton() {
-    return IconButton(
-      onPressed: () {
-        SharedPreferences.getInstance().then((preference) {
-          preference.setBool(Preferences.is_logged_in, false);
-          Navigator.of(context).pushReplacementNamed(Routes.login);
-        });
-      },
-      icon: Icon(
-        Icons.power_settings_new,
-      ),
-    );
-  }
-
-  Widget _buildLanguageButton() {
-    return IconButton(
-      onPressed: () {
-        _buildLanguageDialog();
-      },
-      icon: Icon(
-        Icons.language,
-      ),
     );
   }
 
@@ -130,7 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildListView() {
     return _postStore.postList != null
         ? ListView.separated(
-            itemCount: _postStore.postList.posts.length,
+            itemCount: _postStore.postList!.posts!.length,
             separatorBuilder: (context, position) {
               return Divider();
             },
@@ -150,14 +94,14 @@ class _HomeScreenState extends State<HomeScreen> {
       dense: true,
       leading: Icon(Icons.cloud_circle),
       title: Text(
-        '${_postStore.postList.posts[position].title}',
+        '${_postStore.postList?.posts?[position].title}',
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         softWrap: false,
         style: Theme.of(context).textTheme.title,
       ),
       subtitle: Text(
-        '${_postStore.postList.posts[position].body}',
+        '${_postStore.postList?.posts?[position].body}',
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         softWrap: false,
@@ -169,7 +113,13 @@ class _HomeScreenState extends State<HomeScreen> {
     return Observer(
       builder: (context) {
         if (_postStore.errorStore.errorMessage.isNotEmpty) {
-          return _showErrorMessage(_postStore.errorStore.errorMessage);
+          return HandleWarnMessage.internal().HandleErrorMessage(
+            context: context,
+            title: _postStore.errorStore.errorTitle,
+            errorMessage: _postStore.errorStore.errorMessage,
+            isError: _postStore.errorStore.isError,
+            themeStore: _themeStore,
+          );
         }
 
         return SizedBox.shrink();
@@ -178,19 +128,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // General Methods:-----------------------------------------------------------
-  _showErrorMessage(String message) {
-    Future.delayed(Duration(milliseconds: 0), () {
-      if (message != null && message.isNotEmpty) {
-        FlushbarHelper.createError(
-          message: message,
-          title: AppLocalizations.of(context).translate('home_tv_error'),
-          duration: Duration(seconds: 3),
-        )..show(context);
-      }
-    });
-
-    return SizedBox.shrink();
-  }
 
   _buildLanguageDialog() {
     _showDialog<String>(
@@ -199,7 +136,7 @@ class _HomeScreenState extends State<HomeScreen> {
         borderRadius: 5.0,
         enableFullWidth: true,
         title: Text(
-          AppLocalizations.of(context).translate('home_tv_choose_language'),
+          AppLocalizations.of(context).translate('chooseLanguage'),
           style: TextStyle(
             color: Colors.white,
             fontSize: 16.0,
@@ -219,17 +156,19 @@ class _HomeScreenState extends State<HomeScreen> {
                 dense: true,
                 contentPadding: EdgeInsets.all(0.0),
                 title: Text(
-                  object.language,
+                  object.language!,
                   style: TextStyle(
                     color: _languageStore.locale == object.locale
                         ? Theme.of(context).primaryColor
-                        : _themeStore.darkMode ? Colors.white : Colors.black,
+                        : _themeStore.darkMode
+                            ? Colors.white
+                            : Colors.black,
                   ),
                 ),
                 onTap: () {
                   Navigator.of(context).pop();
                   // change user language based on selected locale
-                  _languageStore.changeLanguage(object.locale);
+                  _languageStore.changeLanguage(object.locale!);
                 },
               ),
             )
@@ -238,11 +177,11 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  _showDialog<T>({BuildContext context, Widget child}) {
+  _showDialog<T>({required BuildContext context, required Widget child}) {
     showDialog<T>(
       context: context,
       builder: (BuildContext context) => child,
-    ).then<void>((T value) {
+    ).then<void>((T? value) {
       // The value passed to Navigator.pop() or null.
     });
   }

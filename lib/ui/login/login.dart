@@ -1,6 +1,7 @@
+import 'package:another_flushbar/flushbar_helper.dart';
 import 'package:flutterBoilerplateWithMobx/constants/assets.dart';
 import 'package:flutterBoilerplateWithMobx/data/sharedpref/constants/preferences.dart';
-import 'package:flutterBoilerplateWithMobx/routes.dart';
+import 'package:flutterBoilerplateWithMobx/utils/routes/routes.dart';
 import 'package:flutterBoilerplateWithMobx/stores/form/form_store.dart';
 import 'package:flutterBoilerplateWithMobx/stores/theme/theme_store.dart';
 import 'package:flutterBoilerplateWithMobx/utils/device/device_utils.dart';
@@ -10,27 +11,26 @@ import 'package:flutterBoilerplateWithMobx/widgets/empty_app_bar_widget.dart';
 import 'package:flutterBoilerplateWithMobx/widgets/progress_indicator_widget.dart';
 import 'package:flutterBoilerplateWithMobx/widgets/rounded_button_widget.dart';
 import 'package:flutterBoilerplateWithMobx/widgets/textfield_widget.dart';
-import 'package:flushbar/flushbar_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreenDemo extends StatefulWidget {
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends State<LoginScreenDemo> {
   //text controllers:-----------------------------------------------------------
   TextEditingController _userEmailController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
 
   //stores:---------------------------------------------------------------------
-  ThemeStore _themeStore;
+  late ThemeStore _themeStore;
 
   //focus node:-----------------------------------------------------------------
-  FocusNode _passwordFocusNode;
+  late FocusNode _passwordFocusNode;
 
   //stores:---------------------------------------------------------------------
   final _store = FormStore();
@@ -62,18 +62,19 @@ class _LoginScreenState extends State<LoginScreen> {
       child: Stack(
         children: <Widget>[
           MediaQuery.of(context).orientation == Orientation.landscape
-            ? Row(
-                children: <Widget>[
-                  Expanded(
-                    flex: 1,
-                    child: _buildLeftSide(),
-                  ),
-                  Expanded(
-                    flex: 1,
-                    child: _buildRightSide(),
-                  ),
-                ],
-          ) : Center(child: _buildRightSide()),
+              ? Row(
+                  children: <Widget>[
+                    Expanded(
+                      flex: 1,
+                      child: _buildLeftSide(),
+                    ),
+                    Expanded(
+                      flex: 1,
+                      child: _buildRightSide(),
+                    ),
+                  ],
+                )
+              : Center(child: _buildRightSide()),
           Observer(
             builder: (context) {
               return _store.success
@@ -151,7 +152,8 @@ class _LoginScreenState extends State<LoginScreen> {
     return Observer(
       builder: (context) {
         return TextFieldWidget(
-          hint: AppLocalizations.of(context).translate('login_et_user_password'),
+          hint:
+              AppLocalizations.of(context).translate('login_et_user_password'),
           isObscure: true,
           padding: EdgeInsets.only(top: 16.0),
           icon: Icons.lock,
@@ -177,7 +179,7 @@ class _LoginScreenState extends State<LoginScreen> {
           style: Theme.of(context)
               .textTheme
               .caption
-              .copyWith(color: Colors.orangeAccent),
+              ?.copyWith(color: Colors.orangeAccent),
         ),
         onPressed: () {},
       ),
@@ -186,6 +188,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget _buildSignInButton() {
     return RoundedButtonWidget(
+      themeStore: _themeStore,
       buttonText: AppLocalizations.of(context).translate('login_btn_sign_in'),
       buttonColor: Colors.orangeAccent,
       textColor: Colors.white,
@@ -202,7 +205,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget navigate(BuildContext context) {
     SharedPreferences.getInstance().then((prefs) {
-      prefs.setBool(Preferences.is_logged_in, true);
+      prefs.setBool(Preferences.isLoggedIn, true);
     });
 
     Future.delayed(Duration(milliseconds: 0), () {
@@ -214,16 +217,18 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   // General Methods:-----------------------------------------------------------
-  _showErrorMessage( String message) {
-    Future.delayed(Duration(milliseconds: 0), () {
-      if (message != null && message.isNotEmpty) {
-        FlushbarHelper.createError(
-          message: message,
-          title: AppLocalizations.of(context).translate('home_tv_error'),
-          duration: Duration(seconds: 3),
-        )..show(context);
-      }
-    });
+  _showErrorMessage(String message) {
+    if (message.isNotEmpty) {
+      Future.delayed(Duration(milliseconds: 0), () {
+        if (message.isNotEmpty) {
+          FlushbarHelper.createError(
+            message: message,
+            title: AppLocalizations.of(context).translate('fillFieldsError'),
+            duration: Duration(seconds: 3),
+          )..show(context);
+        }
+      });
+    }
 
     return SizedBox.shrink();
   }
@@ -237,5 +242,4 @@ class _LoginScreenState extends State<LoginScreen> {
     _passwordFocusNode.dispose();
     super.dispose();
   }
-
 }

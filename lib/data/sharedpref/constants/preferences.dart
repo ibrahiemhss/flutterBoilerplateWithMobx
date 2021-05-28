@@ -1,8 +1,12 @@
 class Preferences {
   Preferences._();
 
-  static const String is_logged_in = "isLoggedIn";
-  static const String auth_token = "authToken";
-  static const String is_dark_mode = "is_dark_mode";
-  static const String current_language = "current_language";
+  static const String isFirstEntry = "isFirstEntry";
+  static const String userType = "userType";
+  static const String isLoggedIn = "isLoggedIn";
+  static const String authToken = "authToken";
+  static const String fcmToken = "fcmToken";
+  static const String isDarkMode = "isDarkMode";
+  static const String userData = "userData";
+  static const String currentLanguage = "currentLanguage";
 }
